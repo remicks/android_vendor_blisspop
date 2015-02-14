@@ -1,7 +1,4 @@
-PRODUCT_BRAND ?= cyanogenmod
-
-SUPERUSER_EMBEDDED := ture
-SUPERUSER_PACKAGE_PREFIX := com.android.settings.cyanogenmod.superuser
+PRODUCT_BRAND ?= bliss
 
 ifneq ($(TARGET_SCREEN_WIDTH) $(TARGET_SCREEN_HEIGHT),$(space))
 # determine the smaller dimension
@@ -66,22 +63,18 @@ ifneq ($(TARGET_BUILD_VARIANT),eng)
 ADDITIONAL_DEFAULT_PROPERTIES += ro.adb.secure=1
 endif
 
-# Copy over the changelog to the device
-PRODUCT_COPY_FILES += \
-    vendor/bliss/CHANGELOG.mkdn:system/etc/CHANGELOG-bliss.txt
-
 # Backup Tool
 ifneq ($(WITH_GMS),true)
 PRODUCT_COPY_FILES += \
-    vendor/bliss/prebuilt/common/bin/backuptool.sh:system/bin/backuptool.sh \
-    vendor/bliss/prebuilt/common/bin/backuptool.functions:system/bin/backuptool.functions \
+    vendor/bliss/prebuilt/common/bin/backuptool.sh:install/bin/backuptool.sh \
+    vendor/bliss/prebuilt/common/bin/backuptool.functions:install/bin/backuptool.functions \
     vendor/bliss/prebuilt/common/bin/50-bliss.sh:system/addon.d/50-bliss.sh \
     vendor/bliss/prebuilt/common/bin/blacklist:system/addon.d/blacklist
 endif
 
 # Signature compatibility validation
 PRODUCT_COPY_FILES += \
-    vendor/bliss/prebuilt/common/bin/otasigcheck.sh:system/bin/otasigcheck.sh
+    vendor/bliss/prebuilt/common/bin/otasigcheck.sh:install/bin/otasigcheck.sh
 
 # init.d support
 PRODUCT_COPY_FILES += \
@@ -95,6 +88,15 @@ PRODUCT_COPY_FILES += \
 # userinit support
 PRODUCT_COPY_FILES += \
     vendor/bliss/prebuilt/common/etc/init.d/90userinit:system/etc/init.d/90userinit
+    
+# fstrim support
+PRODUCT_COPY_FILES += \
+    vendor/bliss/prebuilt/common/etc/init.d/98fstrim:system/etc/init.d/98fstrim
+    
+# SuperSU
+PRODUCT_COPY_FILES += \
+    vendor/bliss/prebuilt/common/UPDATE-SuperSU.zip:system/addon.d/UPDATE-SuperSU.zip \
+    vendor/bliss/prebuilt/common/etc/init.d/99SuperSUDaemon:system/etc/init.d/99SuperSUDaemon
 
 # Bliss-specific init file
 PRODUCT_COPY_FILES += \
@@ -125,6 +127,11 @@ PRODUCT_COPY_FILES += \
 # T-Mobile theme engine
 include vendor/bliss/config/themes_common.mk
 
+# Screen recorder
+PRODUCT_PACKAGES += \
+    ScreenRecorder \
+    libscreenrecorder
+
 # Required CM packages
 PRODUCT_PACKAGES += \
     Development \
@@ -135,7 +142,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     VoicePlus \
     Basic \
-    libemoji
+    libemoji \
+    Terminal
 
 # Custom CM packages
 PRODUCT_PACKAGES += \
@@ -151,7 +159,8 @@ PRODUCT_PACKAGES += \
     OmniSwitch \
     MonthCalendarWidget \
     BlissPapers \
-    DeviceControl
+    DeviceControl \
+    OpenCamera
 
 # Bliss Hardware Abstraction Framework
 PRODUCT_PACKAGES += \
@@ -161,7 +170,6 @@ PRODUCT_PACKAGES += \
 # Extra tools in Bliss
 PRODUCT_PACKAGES += \
     libsepol \
-    openvpn \
     e2fsck \
     mke2fs \
     tune2fs \
@@ -213,31 +221,21 @@ PRODUCT_PACKAGES += \
 
 # These packages are excluded from user builds
 ifneq ($(TARGET_BUILD_VARIANT),user)
-
 PRODUCT_PACKAGES += \
     procmem \
     procrank \
-    Superuser \
     su
-    
-# SuperSU
-PRODUCT_COPY_FILES += \
-    vendor/bliss/prebuilt/common/UPDATE-SuperSU.zip:system/addon.d/UPDATE-SuperSU.zip \
-    vendor/bliss/prebuilt/common/etc/init.d/99SuperSUDaemon:system/etc/init.d/99SuperSUDaemon    
     
 # HFM Files
 PRODUCT_COPY_FILES += \
 	vendor/bliss/prebuilt/etc/hosts.alt:system/etc/hosts.alt \
 	vendor/bliss/prebuilt/etc/hosts.og:system/etc/hosts.og
 
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.root_access=1
-else
+endif
 
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.root_access=0
 
-endif
 
 PRODUCT_PACKAGE_OVERLAYS += vendor/bliss/overlay/common
 
@@ -251,4 +249,4 @@ PRODUCT_PROPERTY_OVERRIDES += persist.sys.recovery_update=false
 
 -include vendor/cyngn/product.mk
 
-$(call inherit-product-if-exists, vendor/extra/product.mk)
+$(call prepend-product-if-exists, vendor/extra/product.mk)
